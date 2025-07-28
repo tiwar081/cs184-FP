@@ -27,69 +27,139 @@
     </style>
 </head>
 <body>
-<h1>Final Project Proposal</h1>
+
+<h1>SmoothSketch: 2D-to-3D Freeform Shape Construction</h1>
 <p><strong>Course:</strong> CS 184: Computer Graphics (Summer 2025)</p>
-<p><strong>Team Members:</strong> [Your Name], [Partner Name if applicable]</p>
-<p><strong>Project Title:</strong> [Enter your project title here]</p>
 
-<section>
-    <h2>1. Motivation</h2>
-    <p>
-        Describe why you chose this project. What interests you about it? What problems or ideas are you trying to explore?
+<h2>Summary and Team Members</h2>
+<p><strong>Team Members:</strong> Samyak Tiwari, Sufjan Fana, Meghai Choudhury, Echo Huang</p>
+<p><strong>Summary:</strong> Our project aims to implement the SmoothSketch pipeline for converting 2D contour drawings into 3D shapes, with a focus on visual fidelity, completeness, and performance. We will build a prototype that takes user-drawn or SVG contour images and outputs a 3D mesh, visualized from multiple angles. If time permits, we will extend our work to generate realistic images conditioned on text using deep learning models.</p>
+
+<h2>Problem Description</h2>
+<p>
+Our ultimate goal is to create 3D figures projected onto a 2D image plane from a contour drawing. Given a 2D sketch, either hand drawn or imported as an SVG, our system will infer the hidden structure, lift the drawing into 3D, and output a mesh that can be rendered from multiple viewpoints. Time permitting, we will use DeepFloyd or similar deep learning image generation models to condition the final image on a textual description. That is, we will pass the 3D result from SmoothSketch to DeepFloyd and have it produce a realistic image with the provided structure and user-supplied text prompt.
+</p>
+<h2>Goals and Deliverables</h2>
+<h3>Baseline Plan: Replicate the paper 2D to 3D SmoothSketch</h3>
+<p>
+    We aim to build a working prototype where the user inputs an image, either mouse drawn or an SVG file of a 2D contour. The final images (or gif) will consist of different angles of our newly constructed 3D shape.
+</p>
+<img src="figure.png" alt="Figure from SmoothSketch paper" style="max-width:100%;margin:1em 0;" />
+    <p style="font-size:0.95em; color:#555;">
+        <em>This is the figure from the paper. The first and the fifth images are user inputs, while the third, fourth, and sixth images are the results. The second one is the intermediate step where we’ve added hidden contours to the existing ones.</em>
     </p>
+<p>Our project will:</p>
+<ul>
+    <li>Complete contours by adding hidden contours to the visible ones</li>
+    <li>Interpolate a surface in 3D by lifting the 2D drawing to a topological embedding</li>
+    <li>Apply basic mesh smoothing to produce a final shape</li>
+</ul>
+<p>Here is a simple example of what the images would look like after each step:</p>
+<img src="example.png" alt="Step-by-step example output" style="max-width:100%;margin:1em 0;" />
+<h3>Details for each step are listed below:</h3>
+<ol>
+    <li><strong>Contour completion</strong>
+        <ul>
+            <li>Enumerate all possible endpoint pairs (tees/cusps).</li>
+            <li>Compute the energy for each pair using the energy function from the paper:
+                <div style="text-align:center;margin:1em 0; font-family: 'Latin Modern Math', 'Cambria Math', 'STIX Math', 'Times New Roman', serif; font-size:1.1em;">
+                    <em>E<sub>curve</sub> = e<sup>∑<sub>i</sub> l<sub>i</sub></sup> · ∑<sub>i</sub> Δθ<sub>i</sub></em>
+                </div>
+                where <em>l<sub>i</sub></em> is the length of the i-th segment of the polyline, and <em>Δθ<sub>i</sub></em> is the absolute value of the angle change between two consecutive segments of the polyline.
+            </li>
+            <li>To find the curve between endpoints, we identify endpoints and their respective tangent vectors, then generate the connecting Bézier curve.</li>
+            <li>Perform a branch-and-greedy search for the best global configuration:
+                <ul>
+                    <li>At each step, keep the Top-10 lowest-energy configurations as candidates,</li>
+                    <li>Expand them iteratively until all endpoints are paired and the overall Huffman labeling is valid.</li>
+                </ul>
+            </li>
+            <li>After all hidden contours are completed, assign Huffman labels to all edges (front, back, or occluding).</li>
+        </ul>
+    </li>
+    <li><strong>Interpolate a surface in 3D by lifting the 2D drawing to a topological embedding</strong>
+        <ul>
+            <li>Identify all closed regions (faces) from the completed, Huffman-labeled sketch.</li>
+            <li>Triangulate each region using the Triangle algorithm to get a well-shaped initial mesh.</li>
+            <li>Duplicate each face depending on its visibility (front/back layers).</li>
+            <li>Glue the duplicated faces along their boundaries according to the Huffman labels</li>
+            <li>Merge coincident boundary vertices into vertex clusters.</li>
+            <li>Assign depth (z-values) to the vertices via a mass–spring relaxation model:
+                <ul>
+                    <li>Enforce the front/back ordering given by the Huffman labels,</li>
+                    <li>Spring forces separate layers along the z-axis, resulting in an abstract 3D shell.</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+    <li><strong>Apply basic mesh smoothing to produce a final shape</strong>
+        <ul>
+            <li>Re-triangulate the mesh (using Triangle algorithm again) to improve triangle quality.</li>
+            <li>Apply Taubin λ/μ smoothing to remove sharp creases while avoiding global shrinkage.</li>
+            <li>Inflate the surface using a mass–spring system:
+                <ul>
+                    <li>Length springs preserve edge lengths to prevent excessive distortion,</li>
+                    <li>Pressure springs push faces outward along their normals, simulating a balloon inflating under pressure.</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ol>
+<h3>Completion Metrics</h3>
+<ul>
+    <li><strong>Visual fidelity</strong> – does the 3D shape “match” the drawing?</li>
+    <li><strong>Completeness</strong> – what is the percentage of test cases where our project successfully infers a surface without failure?</li>
+    <li><strong>Performance</strong> – how long does it take for our project to run each part (contour completion, lifting, smoothing)?</li>
+</ul>
+    <p>For the live in-class presentation, we plan on giving a demo where we create the 2D image either using a mousepad or have a premade contour image using Figma pen tool, then run our program and an OpenGL interface opens with a rotatable 3D object.</p>
+<h3>Aspirational Plan</h3>
+<p>If things go well and ahead of schedule, we aspire to add the following extensions to our project:</p>
+<ul>
+    <li>Use computer vision techniques and deep learning to create a realistic rendering of our final 3D object with input text. For example, the user draws a 2D apple and inputs the term “apple.” Then our project first makes it into a 3D object as described, and then outputs a realistic model of an apple using a deep learning image generation tool (like ChatGPT, Gemini, or more challengingly, DeepFloyd IF).</li>
+    <li>Add different colors (solid colors or gradients), textures (a roughness or reflective slider), and shaders (glass/refraction, toon shading, or Blinn-Phong shading) to our final 3D object that the user can switch between.</li>
+    <li>Allow the user to adjust the light source (color and direction)</li>
+</ul>
 </section>
 
-<section>
-    <h2>2. Background</h2>
-    <p>
-        Briefly summarize any prior research or foundational work relevant to your project. Include links or citations if appropriate.
-    </p>
-</section>
+<h2>Schedule</h2>
+<ul>
+    <li><strong>Week 1 (July 27 - August 2):</strong>
+        <ul>
+            <li><strong>Samyak:</strong> Set up input pipeline for user-drawn contours and SVG uploads. Handle basic file parsing and sketch canvas.</li>
+            <li><strong>Meghai:</strong> Implement endpoint and tangent detection. Begin Bézier curve generation between candidate endpoints.</li>
+            <li><strong>Echo:</strong> Implement energy function for contour completion based on length and curvature. Start global search for low-energy contour configurations.</li>
+            <li><strong>Sufjan:</strong> Assign Huffman labels to contour edges (front, back, occluding). Inspect label results with visual debugger</li>
+        </ul>
+    </li>
+    <li><strong>Week 2 (August 2 - August 9):</strong>
+        <ul>
+            <li><strong>Samyak:</strong> Detect closed regions and triangulate using the Triangle algorithm. Handle layer duplication for front/back faces.</li>
+            <li><strong>Meghai:</strong> Implement vertex clustering and boundary gluing according to labels.</li>
+            <li><strong>Echo:</strong> Develop mass–spring model for z-lifting and apply depth values across mesh.</li>
+            <li><strong>Sufjan:</strong> Integrate OpenGL interface to visualize rotatable 3D output. Add early support for toggling mesh layers and views.</li>
+        </ul>
+    </li>
+    <li><strong>Week 3 (August 10 - August 12):</strong>
+        <ul>
+            <li><strong>Samyak:</strong> Finalize user interface, handle edge cases, and improve stability of input parsing.</li>
+            <li><strong>Meghai:</strong> Apply Taubin smoothing and mesh inflation. Tune spring parameters for visual realism.</li>
+            <li><strong>Echo:</strong> Prepare clean demo inputs, export rotating .gif outputs, and evaluate performance across test cases.</li>
+            <li><strong>Sufjan:</strong> Polish OpenGL view with camera controls and lighting. Prepare final slide deck and format live demo walkthrough.</li>
+        </ul>
+    </li>
+</ul>
 
-<section>
-    <h2>3. Approach</h2>
-    <p>
-        Explain your method: What algorithms, techniques, or tools will you use? Describe the steps involved and how you plan to implement your idea.
-    </p>
-</section>
+<h2>Resources</h2>
+<ul>
+    <li><a href="https://dl.acm.org/doi/abs/1179352.1141928" target="_blank">SmoothSketch: 3D free-form shapes from complex sketches</a></li>
+    <li><a href="https://dl.acm.org/doi/pdf/10.1145/311535.311602" target="_blank">Teddy: A Sketching Interface for 3D Freeform Design</a></li>
+    <li><a href="https://studylib.net/doc/12447068/playing-with-puffball--simple-scale-invariant-inflation-f...?utm_" target="_blank">Playing with Puffball: Simple Scale-Invariant Inflation for Use in Vision and Graphics</a></li>
+</ul>
 
-<section>
-    <h2>4. Resources</h2>
-    <p>
-        What resources (libraries, datasets, references) will you need? Are you using any existing codebases or frameworks?
-    </p>
-</section>
-
-<section>
-    <h2>5. Schedule</h2>
-    <p>
-        Break down your plan into weekly milestones:
-    </p>
-    <ul>
-        <li><strong>Week 1:</strong> [e.g., Research and initial setup]</li>
-        <li><strong>Week 2:</strong> [e.g., Basic algorithm implementation]</li>
-        <li><strong>Week 3:</strong> [e.g., Integration, optimization]</li>
-        <li><strong>Week 4:</strong> [e.g., Final rendering and documentation]</li>
-    </ul>
-</section>
-
-<section>
-    <h2>6. Deliverables</h2>
-    <p>
-        What do you expect to submit at the end? (e.g., rendered images, demo videos, code, write-up)
-    </p>
-</section>
-
-<section>
-    <h2>7. Risks & Mitigations</h2>
-    <p>
-        What are the potential risks or challenges? How will you handle them if they occur?
-    </p>
-</section>
 
 <footer>
     <hr />
-    <p><em>Template created for CS 184 Final Project Proposal — Summer 2025</em></p>
+    <p><em>CS 184 Final Project Proposal - Summer 2025</em></p>
 </footer>
 </body>
 </html>
