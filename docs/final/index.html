@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CS 184 Final Project</title>
+    <title>Puffball: 2D-to-3D Freeform Shape Construction — CS 184 Final Project</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,53 +21,1341 @@
             border-bottom: 2px solid #ccc;
             padding-bottom: 0.3em;
         }
+        h3 {
+            margin-top: 1.2em;
+            color: #003b5c;
+        }
         section {
             margin-top: 2em;
         }
-        .proposal-link {
-            display: block;
-            margin-top: 0.5em;
-            margin-bottom: 1.5em;
-            font-size: 1.05em;
+        nav.toc {
+            margin: 1em 0 2em;
+            padding: 0.75em 1em;
+            background: #eef6fb;
+            border: 1px solid #d7e6f0;
+            border-radius: 6px;
+        }
+        nav.toc a {
+            margin-right: 1em;
             color: #005587;
-            text-decoration: underline;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1em;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
+            padding: 0.75em 0.9em;
+        }
+        .card figure {
+            margin: 0.5em 0;
+        }
+        figure {
+            margin: 1em 0;
+        }
+        figcaption {
+            font-size: 0.9em;
+            color: #555;
+        }
+        table.results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        .results-table th, .results-table td {
+            border: 1px solid #e6e6e6;
+            padding: 0.5em;
+            text-align: center;
+            vertical-align: top;
+        }
+        .results-table th {
+            background: #f5f9fc;
+            color: #003b5c;
+        }
+        pre {
+            background: #f6f8fa;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
+            padding: 0.75em 1em;
+            overflow: auto;
+        }
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.95em;
+        }
+        img.responsive {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75em;
+            align-items: start;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1em;
+        }
+        .callout {
+            background: #fff7e6;
+            border: 1px solid #ffe8b3;
+            border-radius: 6px;
+            padding: 0.75em 0.9em;
+        }
+        .meta {
+            color: #666;
+            margin-top: -0.6em;
+        }
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 6px;
+            border: 1px solid #e6e6e6;
+            background: #000;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .btn-row {
+            display: flex;
+            gap: 0.75em;
+            margin: 0.75em 0 0.5em;
+        }
+        .btn {
+            display: inline-block;
+            background: #005587;
+            color: #fff;
+            padding: 0.5em 0.75em;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.95em;
+        }
+        .btn.secondary {
+            background: #6c757d;
+        }
+        footer {
+            margin-top: 3em;
+            color: #777;
+            font-size: 0.95em;
+        }
+        @media (max-width: 840px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            .gallery { grid-template-columns: 1fr; }
+            .comparison { grid-template-columns: 1fr; }
+        }
+        @media print {
+            nav.toc, .btn-row, .no-print { display: none !important; }
+            body { color: #000; background: #fff; }
+            a:link:after, a:visited:after { content: " (" attr(href) ")"; font-size: 90%; }
+            h1 { border: 0; }
+            .video-wrapper { border: 0; background: #000; }
         }
     </style>
 </head>
 <body>
 
 <h1>Puffball: 2D-to-3D Freeform Shape Construction</h1>
-<a class="final-link" href="https://tiwar081.github.io/cs184-FP/final/" target="_blank">https://tiwar081.github.io/cs184-FP/final/</a>
-<p><strong>Course:</strong> CS 184: Computer Graphics (Summer 2025)</p>
-
-<h2>Summary and Team Members</h2>
-<p><strong>Team Members:</strong> Samyak Tiwari, Echo Huang, Meghai Choudhury</p>
-<p><strong>Summary:</strong> This project implements the Puffball inflation algorithm to convert hand-drawn 2D shapes into 3D models. Our pipeline consists of a Python drawing interface for creating PNG silhouettes, a Puffball implementation computing height values via grassfire distance transforms, and a C++ OpenGL renderer generating double-sided 3D surfaces from the combined PNG and CSV data. The system then produces triangular meshes suitable for shaders and textures.</p>
-
-<h2>Technical Approach</h2>
+<p class="meta"><strong>Course:</strong> CS 184: Computer Graphics (Summer 2025) · <strong>Team:</strong> Samyak Tiwari, Echo Huang, Meghai Choudhury</p>
 <p>
-replace
+    <strong>Website:</strong> <a href="https://tiwar081.github.io/cs184-FP/final/" target="_blank">https://tiwar081.github.io/cs184-FP/final/</a><br />
+    <strong>Video:</strong> <a href="https://youtu.be/VIDEO_ID" target="_blank">https://youtu.be/VIDEO_ID</a>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 </p>
-<h2>Results</h2>
-<p>
-replace
-</p>
 
+<nav class="toc">
+    <a href="#abstract">Abstract</a>
+    <a href="#tech-approach">Technical Approach</a>
+    <a href="#problems">Problems</a>
+    <a href="#lessons">Lessons</a>
+    <a href="#results">Results</a>
+    <a href="#references">References</a>
+    <a href="#contributions">Contributions</a>
+    <a href="#deliverables">Deliverables</a>
+    <a href="#conclusion">Conclusion</a>
+    <a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'}); return false;">Top</a>
+    <div class="btn-row no-print">
+        <a class="btn" href="#" onclick="window.print(); return false;">Print to PDF</a>
+        <a class="btn secondary" href="https://tiwar081.github.io/cs184-FP/final/" target="_blank">Live Webpage</a>
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</nav>
 
+<section id="abstract">
+    <h2>Abstract</h2>
+    <p><strong>Team:</strong> Samyak Tiwari, Echo Huang, Meghai Choudhury</p>
+    <p>
+        This project implements the Puffball inflation algorithm to convert hand-drawn 2D shapes into 3D models. Our pipeline consists of a Python drawing interface for creating PNG silhouettes, a Puffball implementation computing height values via grassfire distance transforms, and a C++ OpenGL renderer generating double-sided 3D surfaces from the combined PNG and CSV data. The system then produces triangular meshes suitable for shaders and textures.
+    </p>
+</section>
 
-<h2>Resources</h2>
-<p>
-add contributions of each team member
-</p>
-<ul></ul>
-<p> [1] Twarog, N.R., Tappen, M.F., Adelson, E.H. "Playing with Puffball: Simple scale invariant inflation for use in vision and graphics"</p>
-    <li><a href="https://studylib.net/doc/12447068/playing-with-puffball--simple-scale-invariant-inflation-f...?utm_" target="_blank">Playing with Puffball: Simple Scale-Invariant Inflation for Use in Vision and Graphics</a></li>
-</ul>
+<section id="tech-approach">
+    <h2>Technical Approach</h2>
+    <p class="callout">Overview of starting point, masks, Puffball implementation, and rendering pipeline.</p>
+    <div class="grid-3">
+        <div class="card">
+            <h3>Starting Point</h3>
+            <p>We began from the Puffball concept paper and a clean-slate implementation (no starter code). Our inputs are hand-drawn binary masks.</p>
+            <figure>
+                <img class="responsive" src="images/masks/strawberry.png" alt="Example input silhouette mask" />
+                <figcaption>Input silhouette (binary mask).</figcaption>
+            </figure>
+            <ul>
+                <li>Reference: Puffball inflation method</li>
+                <li>Assets: hand-drawn 2D masks</li>
+            </ul>
+            <p><strong>Initial prototype.</strong> We began with a single point above our contour and connected points along the contour to that apex. While this produced a basic 3D representation, it was not the behavior or surface quality we wanted.</p>
+            <figure>
+                <img class="responsive" src="images/initialAttempt/single.png" alt="Initial prototype: single apex connected to contour" />
+                <figcaption>Early attempt: single apex connection over the silhouette.</figcaption>
+            </figure>
 
+            <p><strong>Mask creation (existing tool).</strong> We obtain binary silhouette masks using an interactive C++ OpenCV tool from Echo’s prior project.</p>
+            <ul>
+                <li><strong>Workflow</strong>: open <code>source*.png</code>, trace a closed shape with the mouse, auto-fill interior to export <code>mask*.png</code>; supports batch processing.</li>
+                <li><strong>Files</strong>: <code>generate_mask.h/.cpp</code> (draw mask), <code>main.cpp</code> (iterate <code>source*.png</code>), <code>CMakeLists.txt</code>.</li>
+                <li><strong>Mouse</strong>: down=start, move=draw, up=close polygon and <code>cv::fillPoly</code> to fill.</li>
+                <li><strong>Keys</strong>: <code>s</code>=save next, <code>r</code>=reset, <code>q</code>=quit.</li>
+            </ul>
+            <p><strong>Masks created.</strong> Examples of binary masks produced by the tool:</p>
+            <div class="gallery">
+                <figure>
+                    <img class="responsive" src="images/masks/strawberry.png" alt="Strawberry mask" />
+                    <figcaption>strawberry.png</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/masks/bear.png" alt="Bear mask" />
+                    <figcaption>bear.png</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/masks/heart.png" alt="Heart mask" />
+                    <figcaption>heart.png</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/masks/multiple.png" alt="Multiple shapes mask" />
+                    <figcaption>multiple.png</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/masks/nondiff.png" alt="Non-differentiable shape mask" />
+                    <figcaption>nondiff.png</figcaption>
+                </figure>
+            </div>
+
+            <p><strong>Gradient-driven attempt.</strong> Next, we tried to implement something like Puffball by taking the gradient of our mask to obtain a contour, sampling points along the contour, and then moving those points in the direction of the gradient in time steps.</p>
+            <div class="gallery">
+                <figure>
+                    <img class="responsive" src="images/initialAttempt/samples.png" alt="Contour samples from gradient" />
+                    <figcaption>Contour samples</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/initialAttempt/10.png" alt="10 time steps" />
+                    <figcaption>10 steps</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/initialAttempt/20.png" alt="20 time steps" />
+                    <figcaption>20 steps</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/initialAttempt/50.png" alt="50 time steps" />
+                    <figcaption>50 steps</figcaption>
+                </figure>
+            </div>
+            <p>Because the gradients were imperfect, as time steps progressed, points became increasingly scattered. This made it difficult to measure when points converged and to robustly identify the medial axis (ridge points).</p>
+        </div>
+        <div class="card">
+            <h3>What We Built</h3>
+            <ul>
+                <li>Python drawing/IO to create PNG masks</li>
+                <li>Grassfire distance transform and Puffball height computation</li>
+                <li>C++ OpenGL renderer generating 3D surface meshes</li>
+            </ul>
+            <div class="gallery">
+                <figure>
+                    <img class="responsive" src="images/grassfire/strawberry_medial.png" alt="Medial diagram" />
+                    <figcaption>Medial axis/grassfire.</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/grassfire/strawberry_puff.png" alt="Puffball heights visualization" />
+                    <figcaption>Puffball heights.</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/grassfire/strawberry_surf.png" alt="Surface rendering" />
+                    <figcaption>Surface rendering.</figcaption>
+                </figure>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Output</h3>
+            <p>Double-sided 3D geometry suitable for shading and texturing; exportable meshes.</p>
+            <div class="comparison">
+                <figure>
+                    <img class="responsive" src="images/masks/strawberry.png" alt="Input mask (before)" />
+                    <figcaption>Before: 2D mask.</figcaption>
+                </figure>
+                <figure>
+                    <img class="responsive" src="images/grassfire/strawberry_surf.png" alt="Rendered 3D surface (after)" />
+                    <figcaption>After: 3D surface.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="video">
+    <h2>Project Video (1–2 minutes)</h2>
+    <div class="video-wrapper">
+        <!-- Replace VIDEO_ID with your unlisted YouTube ID -->
+        <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0" title="Final Project Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+    <p>Direct link: <a href="https://youtu.be/VIDEO_ID" target="_blank">https://youtu.be/VIDEO_ID</a></p>
+    <ul>
+        <li>All team members appear and speak in the video.</li>
+        <li>Highlights compelling results and a high-level approach.</li>
+    </ul>
+</section>
+
+<section id="report">
+    <h2>Technical Details</h2>
+
+    <h3 id="problems">Problems Encountered</h3>
+    <ul>
+        <li>Handling non-differentiable corners and mask noise.</li>
+        <li>Balancing smoothness vs. shape fidelity.</li>
+        <li>Efficient rendering and numerical stability.</li>
+    </ul>
+
+    <h3 id="lessons">Lessons Learned</h3>
+    <ul>
+        <li>Importance of robust preprocessing for binary masks.</li>
+        <li>Sensitivity of heights to distance transform quality.</li>
+        <li>Trade-offs in real-time rendering vs. offline quality.</li>
+    </ul>
+
+    <h3>Algorithm Summary</h3>
+    <p>
+        Our implementation follows the core Puffball algorithm from Twarog et al.[1], which uses grassfire distance transforms to inflate 2D silhouettes into 3D shapes. The original paper defines inflation as the union of spheres placed at interior points, with sphere radii determined by distance to the nearest boundary. We implemented the practical MATLAB-based approach from Box 1 of the paper in Python, computing distance transforms and applying soft-maximum operations to generate height fields.
+    </p>
+    <ul>
+        <li>Algorithms: grassfire/medial axis, height field derivation, normal computation, mesh generation.</li>
+        <li>Variations: parameter tuning, smoothing strategies, double-sided surface generation.</li>
+        <li>Notes: how our implementation differs or extends references.</li>
+    </ul>
+</section>
+
+<section id="puffball">
+    <h2>Puffball Implementation</h2>
+    <p>
+        We compute a grassfire-based accumulation <code>surf</code> inside the mask, extract a height-valued medial axis transform (MAT) from low-gradient regions, and apply a soft union of spheres (softmax) centered on MAT points to obtain the final height field.
+    </p>
+
+    <h3>1) Grassfire accumulation to build <code>surf</code></h3>
+    <p>Iteratively erode the binary mask and accumulate into <code>surf</code> to form an interior height map.</p>
+    <pre><code>import numpy as np
+from scipy.ndimage import convolve
+
+fil = np.array([
+    [0.1218, 0.4123, 0.1218],
+    [0.4123, 0.9750, 0.4123],
+    [0.1218, 0.4123, 0.1218]
+], dtype=np.float32) / 1.2404
+
+nmask = (mask != 0).astype(np.float32)
+surf = np.zeros_like(nmask, dtype=np.float32)
+
+while np.any(nmask &gt; 0):
+    surf += nmask / 1.67
+    nmaskpad = np.pad(nmask, 1, mode='edge')
+    nmaskpad = convolve(nmaskpad, fil, mode='constant', cval=0.0) - 1.4241
+    nmask = np.clip(nmaskpad[1:-1, 1:-1], 0, 1)
+</code></pre>
+    <p>Example <code>surf</code> visualizations:</p>
+    <div class="gallery">
+        <figure>
+            <img class="responsive" src="images/grassfire/bear_surf.png" alt="bear surf" />
+            <figcaption>Bear — surf</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/heart_surf.png" alt="heart surf" />
+            <figcaption>Heart — surf</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/multiple_surf.png" alt="multiple surf" />
+            <figcaption>Multiple — surf</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/nondiff_surf.png" alt="nondiff surf" />
+            <figcaption>Non-differentiable — surf</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/strawberry_surf.png" alt="strawberry surf" />
+            <figcaption>Strawberry — surf</figcaption>
+        </figure>
+    </div>
+
+    <h3>2) Medial axis from low-gradient regions of <code>surf</code></h3>
+    <p>Threshold gradient magnitude and skeletonize to obtain a thin MAT.</p>
+    <pre><code>from skimage.morphology import skeletonize
+
+dx, dy = np.gradient(surf)
+dsurf = np.sqrt(dx**2 + dy**2)
+low_grad = (dsurf &lt; 0.958) &amp; (surf &gt; 2)
+
+skel = skeletonize(low_grad)
+mat = skel.astype(np.float32) * surf
+</code></pre>
+    <p>Medial axis visualizations:</p>
+    <div class="gallery">
+        <figure>
+            <img class="responsive" src="images/grassfire/bear_medial.png" alt="bear medial" />
+            <figcaption>Bear — medial axis (MAT)</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/heart_medial.png" alt="heart medial" />
+            <figcaption>Heart — medial axis (MAT)</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/multiple_medial.png" alt="multiple medial" />
+            <figcaption>Multiple — medial axis (MAT)</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/nondiff_medial.png" alt="nondiff medial" />
+            <figcaption>Non-differentiable — medial axis (MAT)</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/strawberry_medial.png" alt="strawberry medial" />
+            <figcaption>Strawberry — medial axis (MAT)</figcaption>
+        </figure>
+    </div>
+
+    <h3>3) Soft union of spheres (softmax) to puff the MAT</h3>
+    <p>Soft-add spheres of radius <code>r = mat[y,x]</code> at each medial point and take <code>log</code> for a smooth union.</p>
+    <pre><code>H, W = mask.shape
+X, Y = np.meshgrid(np.arange(W), np.arange(H))
+h = np.ones((H, W), dtype=np.float32)
+
+yi, xi = np.nonzero(mat)
+for y, x in zip(yi, xi):
+    z2 = mat[y, x]**2 - (X - x)**2 - (Y - y)**2
+    pm = z2 &gt; 0
+    h[pm] += np.exp(np.sqrt(z2[pm]))
+
+height = np.log(h).astype(np.float32)
+</code></pre>
+    <p>Puffed results:</p>
+    <div class="gallery">
+        <figure>
+            <img class="responsive" src="images/grassfire/bear_puff.png" alt="bear puffed" />
+            <figcaption>Bear — puffed</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/heart_puff.png" alt="heart puffed" />
+            <figcaption>Heart — puffed</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/multiple_puff.png" alt="multiple puffed" />
+            <figcaption>Multiple — puffed</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/nondiff_puff.png" alt="nondiff puffed" />
+            <figcaption>Non-differentiable — puffed</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/grassfire/strawberry_puff.png" alt="strawberry puffed" />
+            <figcaption>Strawberry — puffed</figcaption>
+        </figure>
+    </div>
+</section>
+
+<section id="processing">
+    <h2>Height Map Processing & Rendering</h2>
+    <p><em>Most of the algorithmic code was implemented in Python.</em> We export the height field to CSV, then use C++/OpenGL to post-process and render:</p>
+    <ul>
+        <li><strong>Boundary pixels to avoid jagged edges</strong>: Identify near-boundary transitions and apply iterative blending to smooth edge transitions and prevent spiky edges.</li>
+        <li><strong>Double-sided rendering</strong>: Reflect the height field with inverted normals to create a balloon-like hollow surface.</li>
+        <li><strong>Triangle mesh conversion</strong>: Convert height fields into triangle meshes suitable for shaders.</li>
+        <li><strong>Boundary clamping</strong>: Clamp edge pixels to minimum heights to ensure smooth boundary transitions.</li>
+        <li><strong>Implementation stack</strong>: Python (mask + Puffball heights) → CSV → C++/OpenGL (double-sided mesh rendering).</li>
+    </ul>
+
+    <h3>Boundary smoothing</h3>
+    <figure>
+        <img class="responsive" src="images/textureMappingAttempt/mask.png" alt="Jagged edge smoothing example" />
+        <figcaption>Edge smoothing concept (use <code>images/jagged.png</code> if available).</figcaption>
+    </figure>
+
+    <h3>Double-sided surface</h3>
+    <figure>
+        <img class="responsive" src="images/textureMappingAttempt/strawberry.png" alt="Double sided rendering" />
+        <figcaption>Double-sided rendering concept (use <code>images/doubleSided.png</code> if available).</figcaption>
+    </figure>
+
+    <h3>Final puffed results</h3>
+    <div class="gallery">
+        <figure>
+            <img class="responsive" src="images/puffed/bear.png" alt="Bear puffed final" />
+            <figcaption>Bear — final</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/puffed/strawberry.png" alt="Strawberry puffed final" />
+            <figcaption>Strawberry — final</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/puffed/nondiff.png" alt="Non-differentiable puffed final" />
+            <figcaption>Non-differentiable — final</figcaption>
+        </figure>
+    </div>
+</section>
+
+<section id="results">
+    <h2>Results</h2>
+    <p>Representative outputs across different shapes. Click images to view at full resolution.</p>
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Shape</th>
+                <th>Mask</th>
+                <th>Medial</th>
+                <th>Puffed (heights)</th>
+                <th>Surface</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Strawberry</strong></td>
+                <td><img class="responsive" src="images/masks/strawberry.png" alt="Strawberry mask" /></td>
+                <td><img class="responsive" src="images/grassfire/strawberry_medial.png" alt="Strawberry medial" /></td>
+                <td><img class="responsive" src="images/grassfire/strawberry_puff.png" alt="Strawberry puff" /></td>
+                <td><img class="responsive" src="images/grassfire/strawberry_surf.png" alt="Strawberry surface" /></td>
+            </tr>
+            <tr>
+                <td><strong>Bear</strong></td>
+                <td><img class="responsive" src="images/masks/bear.png" alt="Bear mask" /></td>
+                <td><img class="responsive" src="images/grassfire/bear_medial.png" alt="Bear medial" /></td>
+                <td><img class="responsive" src="images/grassfire/bear_puff.png" alt="Bear puff" /></td>
+                <td><img class="responsive" src="images/grassfire/bear_surf.png" alt="Bear surface" /></td>
+            </tr>
+            <tr>
+                <td><strong>Heart</strong></td>
+                <td><img class="responsive" src="images/masks/heart.png" alt="Heart mask" /></td>
+                <td><img class="responsive" src="images/grassfire/heart_medial.png" alt="Heart medial" /></td>
+                <td><img class="responsive" src="images/grassfire/heart_puff.png" alt="Heart puff" /></td>
+                <td><img class="responsive" src="images/grassfire/heart_surf.png" alt="Heart surface" /></td>
+            </tr>
+            <tr>
+                <td><strong>Multiple</strong></td>
+                <td><img class="responsive" src="images/masks/multiple.png" alt="Multiple mask" /></td>
+                <td><img class="responsive" src="images/grassfire/multiple_medial.png" alt="Multiple medial" /></td>
+                <td><img class="responsive" src="images/grassfire/multiple_puff.png" alt="Multiple puff" /></td>
+                <td><img class="responsive" src="images/grassfire/multiple_surf.png" alt="Multiple surface" /></td>
+            </tr>
+            <tr>
+                <td><strong>Non-differentiable</strong></td>
+                <td><img class="responsive" src="images/masks/nondiff.png" alt="Non-differentiable mask" /></td>
+                <td><img class="responsive" src="images/grassfire/nondiff_medial.png" alt="Non-differentiable medial" /></td>
+                <td><img class="responsive" src="images/grassfire/nondiff_puff.png" alt="Non-differentiable puff" /></td>
+                <td><img class="responsive" src="images/grassfire/nondiff_surf.png" alt="Non-differentiable surface" /></td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<section id="references">
+    <h2>References</h2>
+    <ol>
+        <li>
+            N. R. Twarog, M. F. Tappen, and E. H. Adelson. “Playing with Puffball: Simple Scale-Invariant Inflation for Use in Vision and Graphics.”
+            <a href="https://studylib.net/doc/12447068/playing-with-puffball--simple-scale-invariant-inflation-f...?utm_" target="_blank">Link</a>
+        </li>
+        <!-- Add more references as needed -->
+    </ol>
+</section>
+
+<section id="contributions">
+    <h2>Contributions</h2>
+    <ul>
+        <li><strong>Echo Huang</strong>: Built the interactive drawing interface (OpenCV) to create binary masks; implemented CSV mesh creation from height maps.</li>
+        <li><strong>Samyak Tiwari</strong>: Implemented the Puffball algorithm, including grassfire accumulation and height-field generation to CSV.</li>
+        <li><strong>Meghai Choudhury</strong>: Implemented C++/OpenGL rendering, reflected double-sided surfaces, and shader-based visualization.</li>
+    </ul>
+    <p><strong>AI usage</strong>: Used AI assistance to help draft triangle-mesh conversion scaffolding and to structure this website. Final algorithms and results remain our own work.</p>
+</section>
+
+<section id="conclusion">
+    <h2>Conclusion</h2>
+    <p>
+        We implemented Puffball end-to-end: mask creation (Echo), height computation via grassfire and MAT (Samyak), and double-sided mesh rendering with shaders (Meghai). Key resources included the Puffball paper [1] and limited AI assistance for mesh/website scaffolding. Together these enabled robust, visually smooth, puffed 3D surfaces from simple 2D silhouettes.
+    </p>
+</section>
+
+<section id="deliverables">
+    <h2>5.3 Final Deliverables</h2>
+    <ul>
+        <li><strong>Webpage</strong> (this page): <a href="https://tiwar081.github.io/cs184-FP/final/" target="_blank">https://tiwar081.github.io/cs184-FP/final/</a></li>
+        <li><strong>Slides</strong>: <a href="https://example.com/slides" target="_blank">https://example.com/slides</a></li>
+        <li><strong>Video</strong> (unlisted YouTube or Berkeley-visible Drive): <a href="https://youtu.be/VIDEO_ID" target="_blank">https://youtu.be/VIDEO_ID</a></li>
+        <li><strong>PDF</strong>: Use your browser’s Print → Save as PDF to generate a standard-sized PDF. Avoid Export as PDF which can create a single huge page.</li>
+    </ul>
+    <p class="callout">Submission deadline: Tuesday, August 12, 2025 at 11:59PM (no late days). Ensure the video is accessible to TAs.</p>
+</section>
+
+<section id="contact">
+    <h2>Contact</h2>
+    <p>Questions? Contact the team: [emails or GitHub repo link].</p>
+</section>
 
 <footer>
     <hr />
-    <p><em>CS 184 Final Project - Summer 2025</em></p>
+    <p><em>CS 184 Final Project — Summer 2025</em></p>
 </footer>
 </body>
 </html>
