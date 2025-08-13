@@ -92,6 +92,15 @@
             border-radius: 4px;
             border: 1px solid #eee;
         }
+        /* Make images bigger for better visibility */
+        .results-table img.responsive {
+            max-width: 120%;
+            margin: 0 -10%;
+        }
+        .compact-gallery img.responsive {
+            max-width: 110%;
+            margin: 0 -5%;
+        }
         .gallery {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -479,7 +488,7 @@ height = np.log(h).astype(np.float32)
 
 <section id="results">
     <h2>Results</h2>
-    <p>Representative outputs across different shapes. Click images to view at full resolution.</p>
+    <p>Representative outputs across different shapes. By converting to a triangle mesh, we were able to display shading on our final puffed objects!</p>
     <table class="results-table">
         <thead>
             <tr>
@@ -535,12 +544,12 @@ height = np.log(h).astype(np.float32)
             <figcaption>Mask</figcaption>
         </figure>
         <figure>
-            <img class="responsive" src="images/textureMappingAttempt/strawberry_mapped.png" alt="Strawberry texture mapped" />
-            <figcaption>Strawberry mapped</figcaption>
-        </figure>
-        <figure>
             <img class="responsive" src="images/textureMappingAttempt/strawberry.png" alt="Original strawberry" />
             <figcaption>Original strawberry</figcaption>
+        </figure>
+        <figure>
+            <img class="responsive" src="images/textureMappingAttempt/strawberry_mapped.png" alt="Strawberry texture mapped" />
+            <figcaption>Strawberry mapped</figcaption>
         </figure>
     </div>
     <p><em>The texture mapping didn't work well in practice. Debugging and improving this material transfer algorithm could be an interesting extension to consider in the future!</em></p>
